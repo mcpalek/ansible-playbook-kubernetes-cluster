@@ -11,7 +11,7 @@
 
 - name: copy files to kube folder
   become: true
-  become_user: root
+  #become_user: root
   ansible.builtin.copy:
     src: /etc/kubernetes/admin.conf
     dest: ~/.kube/config

@@ -1,7 +1,7 @@
 [masters]
-192.168.122.27 master
+192.168.122.27
 [workers]
-192.168.122.225 rocky
+192.168.122.225
 
 [all:vars]
 ansible_user="aca"
