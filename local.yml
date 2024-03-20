@@ -5,27 +5,27 @@
   roles:
   - base
 
-- hosts: all
+- hosts: workers
   connection: local
   become: true
   become_user: root
   roles:
   - rocky
 
-- hosts: all
+- hosts: masters
   connection: local
   become: true
   become_user: root
   roles:
   - ubuntu
-- hosts: master
+- hosts: masters
   connection: local
   become: true
   become_user: root
   roles:
   - initkubernetes
 #ovo dole necemo ovde da implementiramo
-- hosts: rocky #workers
+- hosts: workers
   become: true
   become_user: root
   roles:
