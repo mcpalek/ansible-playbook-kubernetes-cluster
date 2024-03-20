@@ -24,8 +24,7 @@
   #dest: ~/.kube/config
 
 
-  shell: mkdir -p $HOME/.kube sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config sudo chown $(id -u):$(id -g) $HOME/.kube/config
-
+  shell: "mkdir -p $HOME/.kube \nsudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config \nsudo chown $(id -u):$(id -g) $HOME/.kube/config\n #magic___^_^___line\n"
 - name: remove taints
   shell: |
     kubectl taint nodes --all node-role.kubernetes.io/control-plane-
