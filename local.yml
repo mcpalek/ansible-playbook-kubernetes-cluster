@@ -1,0 +1,32 @@
+- hosts: all
+  connection: local
+  become: true
+  become_user: root
+  roles:
+  - base
+
+- hosts: all
+  connection: local
+  become: true
+  become_user: root
+  roles:
+  - rocky
+
+- hosts: all
+  connection: local
+  become: true
+  become_user: root
+  roles:
+  - ubuntu
+- hosts: all #master
+  connection: local
+  become: true
+  become_user: root
+  roles:
+  - initkubernetes
+#ovo dole necemo ovde da implementiramo
+#hosts: rocky #workers
+#become: true
+#become_user: root
+#roles:
+# -# worker-join

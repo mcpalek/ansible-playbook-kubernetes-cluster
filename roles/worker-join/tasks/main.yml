@@ -1,0 +1,21 @@
+
+
+- name: Copy that join command to local server
+  run_once: true
+  delegate_to: rocky
+  fetch:
+    src: /tmp/kubernetes_join_command
+    dest: /tmp/
+    flat: yes
+
+
+- name: Join the Worker nodes with the master.
+  become: true
+  become_method: sudo
+  become_user: root
+  command: sh /tmp/kubernetes_join_command
+  register: joined_or_not
+- debug:
+    msg: "{{ joined_or_not.stdout }}"
+
+
