@@ -4,7 +4,7 @@
 
 - name: create .kube folder
   become: true
-  become_user: root
+  #become_user: root
   file:
     path: ~/.kube
     state: directory
