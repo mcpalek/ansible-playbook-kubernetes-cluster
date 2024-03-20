@@ -10,16 +10,15 @@
   args:
     creates: /usr/local/bin/helm
 
-- name: Update all packages to their latest version on all OS
+  #- name: Update all packages to their latest version on all OS
   #become: true
   #become_user: root
-  package:
-    update_cache: true
-    name: "*"
-    state: latest
-
-
 - name: Disable Swap on all OS
+  ##   update_cache: true
+  #  name: "*"
+  # state: latest
+
+
   command: swapoff -a
   become: true
   #sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab

@@ -18,15 +18,15 @@
   become_user: root
   roles:
   - ubuntu
-- hosts: all #master
+- hosts: master
   connection: local
   become: true
   become_user: root
   roles:
   - initkubernetes
 #ovo dole necemo ovde da implementiramo
-#hosts: rocky #workers
-#become: true
-#become_user: root
-#roles:
-# -# worker-join
+- hosts: rocky #workers
+  become: true
+  become_user: root
+  roles:
+  - worker-join
