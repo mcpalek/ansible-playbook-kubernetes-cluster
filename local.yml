@@ -17,7 +17,7 @@
   become: true
   # become_user: aca
   roles:
-  - rocky
+  - ubuntu #rocky
 
 - hosts: masters
   #connection: local
