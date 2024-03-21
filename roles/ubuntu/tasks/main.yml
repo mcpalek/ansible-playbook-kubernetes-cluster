@@ -4,14 +4,10 @@
   - ansible_distribution in ["Debian", "Ubuntu"]
 
 - name: Set up docker repository for Ubuntu 2
-  shell: curl -fsSL  https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  shell: sudo apt update
   when:
   - ansible_distribution in ["Debian", "Ubuntu"]
 
-- name: Set up docker repository for Ubuntu 3
-  shell: sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-  when:
-  - ansible_distribution in ["Debian", "Ubuntu"]
 
 - name: Install the latest version of Docker Engine and containerd on Ubuntu
   package:
