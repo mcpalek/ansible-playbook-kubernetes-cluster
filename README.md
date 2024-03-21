@@ -22,7 +22,7 @@ ssh-copy-id -i ~/.ssh/id_ed25519.pub 192.168.122.76
 sudo nano /etc/ssh/sshd_config
 trazimo ovo  #PubkeyAuthentication yes i uklanjamo tarabu
 PasswordAuthentication no
-ChallengeResponseAuthentication no
+#ChallengeResponseAuthentication no
 #sudo nano /etc/ssh/sshd_config.d/50-cloud-init.conf
 #PasswordAuthentication no
 #ChallengeResponseAuthentication no
