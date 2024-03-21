@@ -18,7 +18,7 @@
   when:
   - ansible_distribution in ["Debian", "Ubuntu"]
 - name: Add keyrings folder to Ubuntu 20.04
-  shell: sudo mkdir /etc/apt/keyrings
+  shell: mkdir -p -m 755 /etc/apt/keyrings
   when:
   - ansible_distribution in ["Debian", "Ubuntu"] and ansible_distribution_version < "22.04"
 - name: Add kubernetes Repo to Debian/Ubuntu part 1
