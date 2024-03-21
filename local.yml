@@ -6,7 +6,7 @@
   - base
 
 - hosts: masters
-  connection: local
+  #connection: local
   become: true
   #become_user: root
   roles:
@@ -20,14 +20,14 @@
   - rocky
 
 - hosts: masters
-  connection: local
+  #connection: local
   become: true
   # become_user: root
   roles:
   - ubuntu
 
 - hosts: masters
-  connection: local
+  #connection: local
   become: true
   #become_user: root
   roles:
