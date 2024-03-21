@@ -1,5 +1,5 @@
 [masters]
-master ansible_host=192.168.122.27
+master ansible_host=localhost
 [workers]
 rocky ansible_host=192.168.122.225
 

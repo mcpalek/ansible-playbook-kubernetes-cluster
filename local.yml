@@ -1,4 +1,11 @@
-- hosts: all
+- hosts: workers
+  #connection: local
+  become: true
+  #become_user: root
+  roles:
+  - base
+
+- hosts: masters
   connection: local
   become: true
   #become_user: root
@@ -6,7 +13,7 @@
   - base
 
 - hosts: workers
-  connection: local
+  #connection: local
   become: true
   # become_user: aca
   roles:
@@ -18,13 +25,14 @@
   # become_user: root
   roles:
   - ubuntu
+
 - hosts: masters
   connection: local
   become: true
   #become_user: root
   roles:
   - initkubernetes
-#ovo dole necemo ovde da implementiramo
+#
 - hosts: workers
   become: true
   #become_user: aca
