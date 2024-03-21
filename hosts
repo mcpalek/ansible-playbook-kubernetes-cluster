@@ -1,7 +1,7 @@
 [masters]
-master ansible_host=192.168.122.27
+master2 ansible_host=192.168.122.76
 [workers]
-rocky ansible_host=192.168.122.225
+node1 ansible_host=192.168.122.249
 
 
 [all:vars]
