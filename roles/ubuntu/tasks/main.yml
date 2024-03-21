@@ -14,7 +14,7 @@
     name:
     - docker.io #docker-ce
     # - docker-ce-cli
-    - containerd.io
+    #- containerd.io
   when:
   - ansible_distribution in ["Debian", "Ubuntu"]
 - name: Add kubernetes Repo to Debian/Ubuntu part 1
