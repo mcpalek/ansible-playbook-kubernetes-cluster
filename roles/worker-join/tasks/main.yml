@@ -2,7 +2,7 @@
 
 - name: Copy that join command to local server
   run_once: true
-  delegate_to: rocky
+  delegate_to: masters
   fetch:
     src: /tmp/kubernetes_join_command
     dest: /tmp/
