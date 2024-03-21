@@ -1,5 +1,5 @@
 - name: Set up docker repository for Ubuntu
-  shell: "sudo apt install -y curl gnupg2 software-properties-common apt-transport-https ca-certificates 
+  shell: sudo apt install -y curl gnupg2 software-properties-common apt-transport-https ca-certificates
   when:
   - ansible_distribution in ["Debian", "Ubuntu"]
 

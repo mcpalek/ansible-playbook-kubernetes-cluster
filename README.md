@@ -23,10 +23,10 @@ sudo nano /etc/ssh/sshd_config
 trazimo ovo  #PubkeyAuthentication yes i uklanjamo tarabu
 PasswordAuthentication no
 ChallengeResponseAuthentication no
-sudo nano /etc/ssh/sshd_config.d/50-cloud-init.conf
-PasswordAuthentication no
-ChallengeResponseAuthentication no
-UsePAM no
+#sudo nano /etc/ssh/sshd_config.d/50-cloud-init.conf
+#PasswordAuthentication no
+#ChallengeResponseAuthentication no
+#UsePAM no
 
 
 git clone https://github.com/mcpalek/ansible-playbook-kubernetes-cluster.git
