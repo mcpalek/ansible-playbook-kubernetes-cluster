@@ -1,5 +1,15 @@
 - name: Set up docker repository for Ubuntu
-  shell: "sudo apt install -y curl gnupg2 software-properties-common apt-transport-https ca-certificates  #magic___^_^___line\n curl -fsSL  https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - \n #magic___^_^___line\n  add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\"\n"
+  shell: "sudo apt install -y curl gnupg2 software-properties-common apt-transport-https ca-certificates 
+  when:
+  - ansible_distribution in ["Debian", "Ubuntu"]
+
+- name: Set up docker repository for Ubuntu 2
+  shell: curl -fsSL  https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  when:
+  - ansible_distribution in ["Debian", "Ubuntu"]
+
+- name: Set up docker repository for Ubuntu 3
+  shell: sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
   when:
   - ansible_distribution in ["Debian", "Ubuntu"]
 
