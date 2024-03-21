@@ -12,8 +12,8 @@
 - name: Install the latest version of Docker Engine and containerd on Ubuntu
   package:
     name:
-    - docker-ce
-    - docker-ce-cli
+    - docker.io #docker-ce
+    # - docker-ce-cli
     - containerd.io
   when:
   - ansible_distribution in ["Debian", "Ubuntu"]
