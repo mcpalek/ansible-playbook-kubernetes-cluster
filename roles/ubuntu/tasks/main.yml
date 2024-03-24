@@ -25,11 +25,11 @@
   #shell: >
   #curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo
   #apt-key add -
-  shell: curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+  shell: curl -fsSL https://pkgs.k8s.io/core:/stable:/{{ repo_version }}/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
   when:
   - ansible_distribution in ["Debian", "Ubuntu"]
 - name: Add kubernetes Repo to Debian/Ubuntu part 2
-  shell: echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+  shell: echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/{{ repo_version }}/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
   when:
   - ansible_distribution in ["Debian", "Ubuntu"]
 - name: Add kubernetes Repo to Debian/Ubuntu part 3
@@ -37,7 +37,8 @@
   when:
   - ansible_distribution in ["Debian", "Ubuntu"]
 - name: Install kubernetes on Debian/Ubuntu
-  shell: apt install -y kubelet={{ ubuntu_kubernetes_version }} kubeadm={{ ubuntu_kubernetes_version }} kubectl={{ ubuntu_kubernetes_version }}
+  #shell: apt install -y kubelet={{ ubuntu_kubernetes_version }} kubeadm={{ ubuntu_kubernetes_version }} kubectl={{ ubuntu_kubernetes_version }}
+  shell: apt install -y kubelet kubeadm kubectl
   when:
   - ansible_distribution in ["Debian", "Ubuntu"]
 - name: before init on Ubuntu

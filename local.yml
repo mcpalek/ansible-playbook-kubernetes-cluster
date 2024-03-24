@@ -17,14 +17,14 @@
   become: true
   # become_user: aca
   roles:
-  - ubuntu #rocky
+  - rocky #ubuntu #rocky
 
 - hosts: masters
   #connection: local
   become: true
   # become_user: root
   roles:
-  - ubuntu
+  - rocky #ubuntu
 
 - hosts: masters
   #connection: local

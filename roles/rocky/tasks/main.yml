@@ -74,7 +74,7 @@
 - name: Install Kubernetes Package on RedHat/CentOs/Rocky
   shell: >
         yum install -y kubelet-{{ rocky_kubernetes_version }} kubeadm-{{ rocky_kubernetes_version }} kubectl-{{ rocky_kubernetes_version }} --disableexcludes=kubernetes
-
+        #yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
         yum install containerd.io
 
         sudo systemctl enable --now kubelet
