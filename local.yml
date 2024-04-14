@@ -3,12 +3,12 @@
   become: true
   become_user: root
   tasks:
-    -name: Add user to sidoers group
+    - name: Add user to sudoers group
       ansible.builtin.lineinfile:
         dest: /etc/sudoers
         line: "{{ user }}ALL=(ALL)NOPASWD:ALL"
-     vars:
-       user: ansible
+      vars:
+        user: ansible
 - hosts: workers 
   #connection: local
   become: true
