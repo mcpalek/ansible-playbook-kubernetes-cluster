@@ -16,16 +16,23 @@
 - hosts: workers
   #connection: local
   become: true
-  # become_user: aca
-  roles:
-  - ubuntu #rocky
+  tasks:
+   - name: Workers Role
+     ansible.builtin.include_role:
+       name: "{{ item }}"
+     loop:
+      - "{{ ansible_distribution }}"
 
 - hosts: masters
   #connection: local
   become: true
   # become_user: root
-  roles:
-  - ubuntu
+  tasks:
+   - name: Masters Role
+     ansible.builtin.include_role:
+       name: "{{ item }}"
+     loop:
+      - "{{ ansible_distribution }}"
 
 - hosts: masters
   #connection: local
