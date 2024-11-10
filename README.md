@@ -1,9 +1,5 @@
 # ansible-playbook-kubernetes-cluster
 
-pre-req
-
-sudo visudo 
-aca ALL=(ALL) NOPASSWD:ALL
 
 
 Ansible playbook for kubernetes cluster which works on Rocky/Ubuntu/CentOS and RedHat
