@@ -17,4 +17,4 @@ ssh-copy-id -i ~/.ssh/ansible.pub aca@192.168.122.76   # here you write the IP o
 
 ansible all -m ping --key-file ~/.ssh/ansible --ask-become-pass  # with this command we are cheking if all virtual machines are accessible
 
-ansible-playbook local.yml --key-file ~/.ssh/ansible --ask-become-pass  # with this command you stgyart the playbook
+ansible-playbook local.yml --key-file ~/.ssh/ansible --ask-become-pass  # with this command you start the playbook
