@@ -7,11 +7,15 @@ aca ALL=(ALL) NOPASSWD:ALL
 
 
 Ansible playbook for kubernetes cluster which works on Rocky/Ubuntu/CentOS and RedHat
+
 I am using user-u aca
+
 ssh-keygen -t ed25519 -C "my default key" 
+
 ssh-keygen -t ed25519 -C "ansible"   here I write /home/aca/.ssh/ansible for the folder in which I am saving the ssh key
 
 ssh-copy-id -i ~/.ssh/ansible.pub aca@192.168.1.38    # here you write the IP of the vm where you copy 
+
 ssh-copy-id -i ~/.ssh/ansible.pub aca@192.168.1.37    # here you write the IP of the vm where you copy
 
 
