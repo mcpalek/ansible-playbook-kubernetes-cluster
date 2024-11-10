@@ -3,7 +3,7 @@
 [workers]
 192.168.1.37
 
-#localhost ansible_connection=local
+
 
 [all:vars]
 ansible_user="aca"
