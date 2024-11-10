@@ -1,0 +1,120 @@
+
+- name: Check current swap status
+  ansible.builtin.command: swapon --show
+  register: swap_status
+  changed_when: false  # Prevent this task from being marked as changed
+
+- name: Disable Swap on all OS
+  ansible.builtin.command: swapoff -a
+  become: true
+  when: swap_status.stdout != ""  # Run
+
+- name: Check if swap is already disabled in fstab
+  ansible.builtin.command: grep -E '^\s*[^#]+\s+\w+\s+swap' /etc/fstab
+  register: fstab_swap_status
+  changed_when: false
+  failed_when: false
+
+- name: Disable swap permanently, persist reboots
+  ansible.builtin.replace:
+    path: /etc/fstab
+    regexp: '^(\s*)([^#\n]+\s+)(\w+\s+)swap(\s+.*)$'
+    replace: '#\1\2\3swap\4'
+    backup: true
+  when: fstab_swap_status.stdout != ""
+
+
+- name: Check if overlay module is loaded
+  ansible.builtin.shell: "set -o pipefail && lsmod | grep overlay"
+  register: overlay_module_status
+  changed_when: false
+  failed_when: false
+
+
+- name: Add the overlay kernel module
+  community.general.modprobe:
+    name: overlay
+    state: present
+  when: overlay_module_status.stdout != ""
+
+
+- name: Check if br_netfilter module is loaded
+  ansible.builtin.shell: "set -o pipefail && lsmod | grep br_netfilter"
+  register: br_netfilter_module_status
+  changed_when: false
+  failed_when: false
+
+
+- name: Add the br_netfilter kernel module
+  community.general.modprobe:
+    name: br_netfilter
+    state: present
+  when: br_netfilter_module_status.stdout == ""
+
+
+- name: Check sysctl params for Kubernetes
+  ansible.builtin.shell: |
+    sysctl net.bridge.bridge-nf-call-ip6tables net.bridge.bridge-nf-call-iptables net.ipv4.ip_forward
+  args:
+    executable: /bin/bash  # Ensure bash is used
+  register: sysctl_params_status
+  changed_when: false
+  failed_when: false
+
+- name: Check if sysctl settings need to be applied
+  ansible.builtin.shell: "set -o pipefail && sysctl --system | grep 'net.bridge.bridge-nf-call-ip6tables'"
+  register: sysctl_apply_status
+  changed_when: false
+  failed_when: false
+
+- name: Check if Kubernetes sysctl params file exists
+  ansible.builtin.stat:
+    path: /etc/sysctl.d/kubernetes.conf
+  register: kubernetes_conf_status
+
+- name: Create an empty file for Kubernetes sysctl params.
+  ansible.builtin.copy:
+    content: ""
+    dest: /etc/sysctl.d/kubernetes.conf
+    force: false
+  when: not kubernetes_conf_status.stat.exists
+  become: true  # Ensure this is added to elevate permissions
+
+- name: Check current sysctl params
+  ansible.builtin.shell: |
+    sysctl net.bridge.bridge-nf-call-ip6tables net.bridge.bridge-nf-call-iptables net.ipv4.ip_forward
+  args:
+    executable: /bin/bash
+  register: sysctl_current_params
+  changed_when: false
+  failed_when: false
+
+- name: Configure sysctl params for Kubernetes
+  ansible.builtin.lineinfile:
+    path: /etc/sysctl.d/kubernetes.conf
+    line: "{{ item }}"
+  with_items:
+    - 'net.bridge.bridge-nf-call-ip6tables = 1'
+    - 'net.bridge.bridge-nf-call-iptables = 1'
+    - 'net.ipv4.ip_forward = 1'
+  when: >
+    (sysctl_current_params.stdout.find('net.bridge.bridge-nf-call-ip6tables = 1') == -1 or
+    sysctl_current_params.stdout.find('net.bridge.bridge-nf-call-iptables = 1') == -1 or
+    sysctl_current_params.stdout.find('net.ipv4.ip_forward = 1') == -1)
+
+
+- name: Check if sysctl params have changed
+  ansible.builtin.shell: |
+    sysctl -p /etc/sysctl.d/kubernetes.conf
+  args:
+    executable: /bin/bash
+  register: sysctl_apply_status
+  changed_when: false
+
+- name: Restart sysctl on all OS
+  ansible.builtin.command: sysctl --system
+  when: sysctl_apply_status.stdout != ""
+
+
+
+

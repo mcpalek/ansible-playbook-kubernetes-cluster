@@ -1,0 +1,166 @@
+- name: Ensure dependencies are installed.
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg2
+      - software-properties-common
+    state: present
+
+- name: Update cache
+  ansible.builtin.apt:
+    update_cache: true
+  when:
+    - ansible_distribution in ["Debian", "Ubuntu"]
+
+- name: Remove any existing Docker repository entries
+  ansible.builtin.file:
+    path: /etc/apt/sources.list.d/docker.list
+    state: absent
+  ignore_errors: true
+
+- name: Remove existing Docker GPG key if it exists
+  ansible.builtin.file:
+    path: /usr/share/keyrings/docker-archive-keyring.gpg
+    state: absent
+  ignore_errors: true
+
+- name: Download Docker GPG key
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /tmp/docker.gpg
+
+- name: Add Docker GPG key
+  ansible.builtin.command:
+    cmd: gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg /tmp/docker.gpg
+
+- name: Add Docker repository on Debian-based systems
+  ansible.builtin.apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/{{ ansible_system | lower }}/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable
+    state: present
+
+
+- name: Update apt cache (only if notified)
+  ansible.builtin.apt:
+    update_cache: true
+  when: ansible_os_family == "Debian"
+#  listen: Update apt cache
+
+
+- name: Check if Docker service is running
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+  register: docker_service_check
+  ignore_errors: true  # Ignore errors to continue to the next task
+
+- name: Initialize docker_installed variable
+  ansible.builtin.set_fact:
+    docker_installed: false  # Initialize to false
+
+# - name: Determine if Docker is installed based on service
+#   ansible.builtin.set_fact:
+#     docker_installed: "{{ 'true' if docker_service_check is defined and docker_service_check.rc == 0 else 'false' }}"
+
+- name: Check if Docker is installed via package manager
+  ansible.builtin.apt:
+    name: docker-ce
+    state: present
+  register: docker_package_check
+  check_mode: true  # Run in check mode to only check for the package without changing state
+
+- name: Update docker_installed based on package check
+  ansible.builtin.set_fact:
+    docker_installed: "{{ docker_installed or (docker_package_check.changed == false) }}"
+
+- name: Install Docker if not already installed
+  ansible.builtin.apt:
+    name: docker-ce
+    state: present
+  when: not docker_installed
+  # Only install if Docker is not installed
+
+- name: Add keyrings folder to Ubuntu 20.04
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+  when:
+    - ansible_distribution in ["Debian", "Ubuntu"]
+    - ansible_distribution_version <= "22.04"
+
+- name: Check if Kubernetes repo keyring exists
+  ansible.builtin.stat:
+    path: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+  register: kubernetes_keyring
+
+- name: Add Kubernetes repo keyring if missing
+  ansible.builtin.shell: >
+    curl -fsSL https://pkgs.k8s.io/core:/stable:/{{ repo_version }}/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+  when: not kubernetes_keyring.stat.exists
+
+- name: Check if Kubernetes sources.list entry exists
+  ansible.builtin.shell: |
+   ls /etc/apt/sources.list.d | grep -q kubernetes.list
+  register: kubernetes_sources_check
+  ignore_errors: true
+
+- name: Set fact if Kubernetes source entry exists
+  ansible.builtin.set_fact:
+    kubernetes_source_exists: "{{ kubernetes_sources_check.rc == 0 }}"
+
+- name: Add Kubernetes Repo to Debian/Ubuntu
+  ansible.builtin.shell: |
+    echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/{{ repo_version }}/deb/ /' | tee /etc/apt/sources.list.d/kubernetes.list
+  when:
+    - ansible_distribution in ["Debian", "Ubuntu"]
+    - not kubernetes_source_exists
+
+- name: Update apt cache for Kubernetes repo
+  ansible.builtin.apt:
+    update_cache: yes
+  when:
+    - ansible_distribution in ["Debian", "Ubuntu"]
+
+- name: Check if Kubernetes packages are installed
+  shell: dpkg -l | grep -E 'kubelet|kubeadm|kubectl'
+  register: kubernetes_packages_check
+  ignore_errors: true
+
+- name: Set fact if Kubernetes packages are installed
+  set_fact:
+    kubernetes_packages_installed: "{{ kubernetes_packages_check.rc == 0 }}"
+
+
+- name: Install Kubernetes on Debian/Ubuntu
+  ansible.builtin.apt:
+    name:
+      - kubelet={{ ubuntu_kubernetes_version }}
+      - kubeadm={{ ubuntu_kubernetes_version }}
+      - kubectl={{ ubuntu_kubernetes_version }}
+    state: present
+  when: kubernetes_packages_check.rc != 0
+
+- name: Ensure containerd is installed.
+  ansible.builtin.package:
+    name: containerd.io
+    state: present
+
+- name: Check if containerd config file exists
+  stat:
+    path: /etc/containerd/config.toml
+  register: containerd_config
+
+- name: Use systemd Cgroup driver for containerd
+  ansible.builtin.lineinfile:
+    path: /etc/containerd/config.toml
+    regexp: '^#?systemd_cgroup ='
+    line: 'systemd_cgroup = true'
+  when: containerd_config.stat.exists
+
+
+- name: Restart containerd
+  ansible.builtin.systemd:
+    name: containerd
+    state: restarted
