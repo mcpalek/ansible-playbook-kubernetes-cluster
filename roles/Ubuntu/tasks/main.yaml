@@ -51,21 +51,25 @@
   when: not kubernetes_keyring.stat.exists
 
 - name: Check if Kubernetes sources.list entry exists
-  ansible.builtin.shell: |
-   ls /etc/apt/sources.list.d | grep -q kubernetes.list
+  ansible.builtin.stat:
+    path: /etc/apt/sources.list.d/kubernetes.list
   register: kubernetes_sources_check
-  ignore_errors: true
 
-- name: Set fact if Kubernetes source entry exists
+- name: Set fact if Kubernetes sources.list entry exists
   ansible.builtin.set_fact:
-    kubernetes_source_exists: "{{ kubernetes_sources_check.rc == 0 }}"
+    kubernetes_sources_exists: "{{ kubernetes_sources_check.stat.exists }}"
+
+- name: Debug the status of Kubernetes sources.list entry
+  debug:
+    msg: "Kubernetes sources.list entry exists: {{ kubernetes_sources_exists }}"
+
 
 - name: Add Kubernetes Repo to Debian/Ubuntu
   ansible.builtin.shell: |
     echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/{{ repo_version }}/deb/ /' | tee /etc/apt/sources.list.d/kubernetes.list
   when:
     - ansible_distribution in ["Debian", "Ubuntu"]
-    - not kubernetes_source_exists
+    - not kubernetes_keyring.stat.exists
 
 - name: Update apt cache for Kubernetes repo
   ansible.builtin.apt:
@@ -74,19 +78,33 @@
     - ansible_distribution in ["Debian", "Ubuntu"]
 
 - name: Check if kubelet is installed
-  ansible.builtin.command: dpkg -s kubelet
+  ansible.builtin.stat:
+    path: /usr/bin/kubelet
   register: kubelet_check
-  ignore_errors: true
 
 - name: Check if kubeadm is installed
-  ansible.builtin.command: dpkg -s kubeadm
+  ansible.builtin.stat:
+    path: /usr/bin/kubeadm
   register: kubeadm_check
-  ignore_errors: true
 
 - name: Check if kubectl is installed
-  ansible.builtin.command: dpkg -s kubectl
+  ansible.builtin.stat:
+    path: /usr/bin/kubectl
   register: kubectl_check
-  ignore_errors: true
+
+- name: Set fact if Kubernetes components are installed
+  ansible.builtin.set_fact:
+    kubelet_installed: "{{ kubelet_check.stat.exists }}"
+    kubeadm_installed: "{{ kubeadm_check.stat.exists }}"
+    kubectl_installed: "{{ kubectl_check.stat.exists }}"
+
+- name: Debug the installation status of Kubernetes components
+  debug:
+    msg:
+      - "kubelet installed: {{ kubelet_installed }}"
+      - "kubeadm installed: {{ kubeadm_installed }}"
+      - "kubectl installed: {{ kubectl_installed }}"
+
 
 
 - name: Install Kubernetes on Debian/Ubuntu
@@ -97,9 +115,9 @@
       - kubectl={{ ubuntu_kubernetes_version }}
     state: present
   when:
-    - kubelet_check.rc != 0
-    - kubeadm_check.rc != 0
-    - kubectl_check.rc != 0
+    - not kubelet_installed
+    - not kubeadm_installed
+    - not kubectl_installed
 
 - name: Reload systemd daemon
   ansible.builtin.systemd:
