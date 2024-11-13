@@ -1,35 +1,46 @@
 - name: Check if Kubernetes is initialized
-  ansible.builtin.command: test -d /etc/kubernetes/manifests
+  ansible.builtin.stat:
+    path: /etc/kubernetes/admin.conf
   register: kubernetes_initialized
   ignore_errors: true
+
 - name: Set fact if Kubernetes is initialized
   ansible.builtin.set_fact:
-    kubernetes_is_initialized: "{{ kubernetes_initialized.rc == 0 }}"
-  
+    kubernetes_is_initialized: "{{ kubernetes_initialized.stat.exists }}"
+
 - name: Debug initialization status
   debug:
     msg: "Kubernetes is initialized: {{ kubernetes_is_initialized }}"
 
+- name: Install Kubernetes packages if not already installed
+  ansible.builtin.package:
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl
+    state: present
+  when: not kubernetes_is_initialized
+
 - name: Initialize Kubernetes
   ansible.builtin.shell: |
-    sudo kubeadm init --apiserver-advertise-address={{ ansible_default_ipv4.address }} --control-plane-endpoint={{ ansible_default_ipv4.address }} --apiserver-cert-extra-sans={{ ansible_default_ipv4.address }} --pod-network-cidr=10.0.0.0/16 --upload-certs
-  when:  not kubernetes_is_initialized
+    kubeadm init --apiserver-advertise-address={{ ansible_default_ipv4.address }} \
+                  --control-plane-endpoint={{ ansible_default_ipv4.address }} \
+                  --apiserver-cert-extra-sans={{ ansible_default_ipv4.address }} \
+                  --pod-network-cidr=10.0.0.0/16 --upload-certs
+  when: not kubernetes_is_initialized
   register: output
 
 - name: Storing Logs and Generated token for future purpose
-  ansible.builtin.copy:
-    content: "{{ output.stdout | default('Kubernetes was already initialized; no output generated.') }}"
+  copy:
+    content: "{{ output.stdout }}"
     dest: "/tmp/token"
-  when: output is defined and output.stdout is defined
-
 - debug:
-    msg: "{{ output.stdout | default('Kubernetes was already initialized; no output generated.') }}"
-  when: output is defined and output.stdout is defined
+    msg: "{{ output.stdout }}"
 
 - name: Generated token - 1.
-  ansible.builtin.shell: sed -n 83,84p /tmp/token > /tmp/workertoken
+  shell: sed -n 83,84p /tmp/token > /tmp/workertoken
 
-#this command copy worker join command from Master server t Ansible controller
+# this command copy worker join command from Master server  Ansible controller
 - name: Copy master token
   ansible.builtin.fetch:
     src: /tmp/workertoken
